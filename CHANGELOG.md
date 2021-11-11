@@ -1,6 +1,6 @@
 # ulid-workers changelog
 
-## v0.1.0
+## v1.0.0
 
 _2021-11-10_
 
