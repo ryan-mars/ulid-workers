@@ -1,5 +1,5 @@
 {
-    "name": "ulid-workers",
+    "name": "@ryan-mars/ulid-workers",
     "version": "1.0.0",
     "description": "ULID generator for Cloudflare workers",
     "main": "dist/index.js",
