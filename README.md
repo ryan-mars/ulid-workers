@@ -6,8 +6,6 @@ ULID generator library for [Cloudflare Workers](https://developers.cloudflare.co
 
 ULIDs are Universally Unique Lexicographically Sortable Identifiers. This library adheres to [this specification](https://github.com/ulid/spec).
 
-> The original [ulid](https://github.com/ulid/javascript) is no longer maintained, and has several outstanding compatibility-related issues that were never addressed. This library aims to address those and remain compatible in a larger range of environments.
-
 ## Installation
 
 Install using npm by running: `npm install ulid-workers --save`.
