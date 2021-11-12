@@ -1,1 +1,1 @@
-export { monotonicFactory, ulid, decodeTime, PRNG, ULID, ULIDFactory } from "./ulid";
+export { monotonicFactory, ulid, encodeTime, decodeTime, PRNG, ULID, ULIDFactory } from "./ulid";
