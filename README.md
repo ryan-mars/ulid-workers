@@ -4,7 +4,7 @@
 
 ULID generator library for [Cloudflare Workers](https://developers.cloudflare.com/workers/), based off of the fork [ulidx](https://github.com/perry-mitchell/ulidx) which in turn was based on the original [ulid](https://github.com/ulid/javascript) for NodeJS and the browser.
 
-**What is a ULID**
+**What is a ULID?**
 
 ULIDs are Universally Unique Lexicographically Sortable Identifiers. This library adheres to [this specification](https://github.com/ulid/spec).
 
