@@ -10,7 +10,7 @@ ULIDs are Universally Unique Lexicographically Sortable Identifiers. This librar
 
 **Why fork `ulidx`?** 
 
-See [this dissussion](https://github.com/perry-mitchell/ulidx/pull/6#issuecomment-1003190116). 
+See [this discussion](https://github.com/perry-mitchell/ulidx/pull/6#issuecomment-1003190116).
 
 ## Installation
 
