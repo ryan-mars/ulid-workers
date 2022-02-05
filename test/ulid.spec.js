@@ -58,7 +58,7 @@ describe("ulid", function () {
         });
     });
 
-    describe("detectPRNG", function () {
+    describe("webCryptoPRNG", function () {
         it("should return a function", function () {
             expect(webCryptoPRNG).to.be.a("function");
         });
@@ -81,7 +81,7 @@ describe("ulid", function () {
 
     describe("encodeRandom", function () {
         it("should return correct length", function () {
-            expect(encodeRandom(12, webCryptoPRNG)).to.have.a.lengthOf(12);
+            expect(encodeRandom(12)).to.have.a.lengthOf(12);
         });
     });
 
@@ -137,17 +137,22 @@ describe("ulid", function () {
         });
 
         describe("returned function", function () {
-            before(function () {
-                this.prng = sinon.stub().returns(0.96);
-            });
-
             describe("without seedTime", function () {
                 before(function () {
+                    // Stub out web crypto.getRandomValues() to always return the same value since
+                    // we are only testing monotonic incrementing here.
+                    global.crypto = {
+                        getRandomValues: function (buf) {
+                            const bytes = Buffer.alloc(buf.length); // zero-filled Buffer of the correct length for testing
+                            buf.set(bytes);
+                            return buf;
+                        },
+                    };
                     this.clock = sinon.useFakeTimers({
                         now: 1469918176385,
                         toFake: ["Date"],
                     });
-                    this.ulid = monotonicFactory(this.prng);
+                    this.ulid = monotonicFactory();
                 });
 
                 after(function () {
@@ -155,19 +160,19 @@ describe("ulid", function () {
                 });
 
                 it("first call", function () {
-                    expect(this.ulid()).to.equal("01ARYZ6S41YYYYYYYYYYYYYYYY");
+                    expect(this.ulid()).to.equal("01ARYZ6S410000000000000000");
                 });
 
                 it("second call", function () {
-                    expect(this.ulid()).to.equal("01ARYZ6S41YYYYYYYYYYYYYYYZ");
+                    expect(this.ulid()).to.equal("01ARYZ6S410000000000000001");
                 });
 
                 it("third call", function () {
-                    expect(this.ulid()).to.equal("01ARYZ6S41YYYYYYYYYYYYYYZ0");
+                    expect(this.ulid()).to.equal("01ARYZ6S410000000000000002");
                 });
 
                 it("fourth call", function () {
-                    expect(this.ulid()).to.equal("01ARYZ6S41YYYYYYYYYYYYYYZ1");
+                    expect(this.ulid()).to.equal("01ARYZ6S410000000000000003");
                 });
             });
         });
@@ -176,14 +181,14 @@ describe("ulid", function () {
     describe("randomChar", function () {
         it("should never return undefined", function () {
             for (let x = 0; x < 320000; x++) {
-                const randChar = randomChar(webCryptoPRNG);
+                const randChar = randomChar();
                 expect(randChar).to.not.be.undefined;
             }
         });
 
         it("should never return an empty string", function () {
             for (let x = 0; x < 320000; x++) {
-                const randChar = randomChar(webCryptoPRNG);
+                const randChar = randomChar();
                 expect(randChar).to.not.equal("");
             }
         });

@@ -71,7 +71,7 @@ decodeTime("01ARYZ6S41TSV4RRFFQ69G5FAV"); // 1469918176385
 
 ## Pseudo-Random Number Generation (PRNG)
 
-The Cloudflare Workers Runtime implements the [Web Crypto API](https://developers.cloudflare.com/workers/runtime-apis/web-crypto) (with some caveats). It does not provide Node's crypto module. Therefore, our Pseudo Random Number Generator (PRNG) uses `crypto.getRandomValues`.
+The Cloudflare Workers runtime implements the [Web Crypto API](https://developers.cloudflare.com/workers/runtime-apis/web-crypto) `crypto.getRandomValues` function which this library uses to generate the random portion of a ULID.
 
 ## Date Seed for ULID Time
 

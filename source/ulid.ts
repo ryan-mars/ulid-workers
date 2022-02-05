@@ -1,6 +1,5 @@
 // Adapted from https://github.com/perry-mitchell/ulidx for use with Cloudflare
 // Workers and Durable Objects
-export type PRNG = () => number;
 export type ULID = string;
 export type ULIDFactory = () => ULID;
 
@@ -12,16 +11,14 @@ const TIME_MAX = Math.pow(2, 48) - 1;
 const TIME_LEN = 10;
 const RANDOM_LEN = 16;
 
-// The Cloudflare Workers Runtime implements the Web Crypto API (with some
-// caveats). It does not provide Node's crypto module.
-// Performing cryptographic operations using the Web Crypto API is
-// significantly faster than performing them purely in JavaScript.
-
-// Our Pseudo Random Number Generator (PRNG) uses `crypto.getRandomValues`.
+// The Cloudflare Workers Runtime implements the Web Crypto API
+// `crypto.getRandomValues` function to retrieve fast and secure
+// randomness.
+// See : https://developers.cloudflare.com/workers/runtime-apis/web-crypto#methods
 export function webCryptoPRNG() {
     const buffer = new Uint8Array(1);
     crypto.getRandomValues(buffer);
-    return buffer[0] / 0xff;
+    return buffer[0] / 0xff; // divide by 0xff to get a number between 0 and 1
 }
 
 export function decodeTime(id: string): number {
@@ -45,10 +42,10 @@ export function decodeTime(id: string): number {
     return time;
 }
 
-export function encodeRandom(len: number, prng: PRNG): string {
+export function encodeRandom(len: number): string {
     let str = "";
     for (; len > 0; len--) {
-        str = randomChar(prng) + str;
+        str = randomChar() + str;
     }
     return str;
 }
@@ -98,10 +95,10 @@ function incrementBase32(str: string): string {
     throw new Error("Failed incrementing string");
 }
 
-export function monotonicFactory(prng?: PRNG): ULIDFactory {
-    let currentPRNG = prng || webCryptoPRNG;
-    let lastTime: number = 0,
-        lastRandom: string;
+export function monotonicFactory(): ULIDFactory {
+    let lastTime: number = 0;
+    let lastRandom: string;
+
     return function _ulid(): ULID {
         const seed = Date.now();
         if (seed <= lastTime) {
@@ -109,13 +106,13 @@ export function monotonicFactory(prng?: PRNG): ULIDFactory {
             return encodeTime(lastTime, TIME_LEN) + incrementedRandom;
         }
         lastTime = seed;
-        const newRandom = (lastRandom = encodeRandom(RANDOM_LEN, currentPRNG));
+        const newRandom = (lastRandom = encodeRandom(RANDOM_LEN));
         return encodeTime(seed, TIME_LEN) + newRandom;
     };
 }
 
-export function randomChar(prng: PRNG): string {
-    let rand = Math.floor(prng() * ENCODING_LEN);
+export function randomChar(): string {
+    let rand = Math.floor(webCryptoPRNG() * ENCODING_LEN);
     if (rand === ENCODING_LEN) {
         rand = ENCODING_LEN - 1;
     }
@@ -129,8 +126,7 @@ function replaceCharAt(str: string, index: number, char: string): string {
     return str.substr(0, index) + char + str.substr(index + 1);
 }
 
-export function ulid(seedTime?: number, prng?: PRNG): ULID {
-    const currentPRNG = prng || webCryptoPRNG;
+export function ulid(seedTime?: number): ULID {
     const seed = isNaN(seedTime) ? Date.now() : seedTime;
-    return encodeTime(seed, TIME_LEN) + encodeRandom(RANDOM_LEN, currentPRNG);
+    return encodeTime(seed, TIME_LEN) + encodeRandom(RANDOM_LEN);
 }
