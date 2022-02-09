@@ -1,7 +1,11 @@
 // Adapted from https://github.com/perry-mitchell/ulidx for use with Cloudflare
 // Workers and Durable Objects
+
 export type ULID = string;
-export type ULIDFactory = () => ULID;
+export type ULIDFactoryArgs = {
+    monotonic?: boolean;
+};
+export type ULIDFactory = (timestamp?: number) => ULID;
 
 // These values should NEVER change. The values are precisely for
 // generating ULIDs.
@@ -13,36 +17,15 @@ const RANDOM_LEN = 16;
 
 // The Cloudflare Workers Runtime implements the Web Crypto API
 // `crypto.getRandomValues` function to retrieve fast and secure
-// randomness.
+// randomness. This function is not available in the Node.js
 // See : https://developers.cloudflare.com/workers/runtime-apis/web-crypto#methods
-export function webCryptoPRNG() {
+function webCryptoPRNG() {
     const buffer = new Uint8Array(1);
     crypto.getRandomValues(buffer);
     return buffer[0] / 0xff; // divide by 0xff to get a number between 0 and 1
 }
 
-export function decodeTime(id: string): number {
-    if (id.length !== TIME_LEN + RANDOM_LEN) {
-        throw new Error("Malformed ULID");
-    }
-    const time = id
-        .substr(0, TIME_LEN)
-        .split("")
-        .reverse()
-        .reduce((carry, char, index) => {
-            const encodingIndex = ENCODING.indexOf(char);
-            if (encodingIndex === -1) {
-                throw new Error(`Time decode error: Invalid character: ${char}`);
-            }
-            return (carry += encodingIndex * Math.pow(ENCODING_LEN, index));
-        }, 0);
-    if (time > TIME_MAX) {
-        throw new Error(`Malformed ULID: timestamp too large: ${time}`);
-    }
-    return time;
-}
-
-export function encodeRandom(len: number): string {
+function encodeRandom(len: number): string {
     let str = "";
     for (; len > 0; len--) {
         str = randomChar() + str;
@@ -50,23 +33,32 @@ export function encodeRandom(len: number): string {
     return str;
 }
 
-export function encodeTime(now: number, len: number): string {
-    if (isNaN(now)) {
-        throw new Error(`Time must be a number: ${now}`);
-    } else if (now > TIME_MAX) {
-        throw new Error(`Cannot encode a time larger than ${TIME_MAX}: ${now}`);
-    } else if (now < 0) {
-        throw new Error(`Time must be positive: ${now}`);
-    } else if (Number.isInteger(now) === false) {
-        throw new Error(`Time must be an integer: ${now}`);
+function validateTimestamp(timestamp: number): void {
+    if (isNaN(timestamp)) {
+        throw new Error(`timestamp must be a number: ${timestamp}`);
+    } else if (timestamp > TIME_MAX) {
+        throw new Error(
+            `cannot encode a timestamp larger than 2^48 - 1 (${TIME_MAX}) : ${timestamp}`
+        );
+    } else if (timestamp < 0) {
+        throw new Error(`timestamp must be positive: ${timestamp}`);
+    } else if (Number.isInteger(timestamp) === false) {
+        throw new Error(`timestamp must be an integer: ${timestamp}`);
     }
-    let mod: number,
-        str: string = "";
-    for (let currentLen = len; currentLen > 0; currentLen--) {
-        mod = now % ENCODING_LEN;
+}
+
+function encodeTime(timestamp: number, len: number): string {
+    validateTimestamp(timestamp);
+
+    let mod: number;
+    let str: string = "";
+
+    for (let currentLen: number = len; currentLen > 0; currentLen--) {
+        mod = timestamp % ENCODING_LEN;
         str = ENCODING.charAt(mod) + str;
-        now = (now - mod) / ENCODING_LEN;
+        timestamp = (timestamp - mod) / ENCODING_LEN;
     }
+
     return str;
 }
 
@@ -95,23 +87,7 @@ function incrementBase32(str: string): string {
     throw new Error("Failed incrementing string");
 }
 
-export function monotonicFactory(): ULIDFactory {
-    let lastTime: number = 0;
-    let lastRandom: string;
-
-    return function _ulid(): ULID {
-        const seed = Date.now();
-        if (seed <= lastTime) {
-            const incrementedRandom = (lastRandom = incrementBase32(lastRandom));
-            return encodeTime(lastTime, TIME_LEN) + incrementedRandom;
-        }
-        lastTime = seed;
-        const newRandom = (lastRandom = encodeRandom(RANDOM_LEN));
-        return encodeTime(seed, TIME_LEN) + newRandom;
-    };
-}
-
-export function randomChar(): string {
+function randomChar(): string {
     let rand = Math.floor(webCryptoPRNG() * ENCODING_LEN);
     if (rand === ENCODING_LEN) {
         rand = ENCODING_LEN - 1;
@@ -126,7 +102,78 @@ function replaceCharAt(str: string, index: number, char: string): string {
     return str.substr(0, index) + char + str.substr(index + 1);
 }
 
-export function ulid(seedTime?: number): ULID {
-    const seed = isNaN(seedTime) ? Date.now() : seedTime;
-    return encodeTime(seed, TIME_LEN) + encodeRandom(RANDOM_LEN);
+/**
+ * Decode the time component of a ULID to a number representing the UNIX epoch timestamp.
+ * @param {string}  id - A ULID string.
+ * @returns {number} The UNIX epoch timestamp.
+ */
+export function decodeTime(id: string): number {
+    if (id.length !== TIME_LEN + RANDOM_LEN) {
+        throw new Error("Malformed ULID");
+    }
+
+    const time = id
+        .substr(0, TIME_LEN)
+        .split("")
+        .reverse()
+        .reduce((carry, char, index) => {
+            const encodingIndex = ENCODING.indexOf(char);
+            if (encodingIndex === -1) {
+                throw new Error(`Time decode error: Invalid character: ${char}`);
+            }
+            return (carry += encodingIndex * Math.pow(ENCODING_LEN, index));
+        }, 0);
+
+    if (time > TIME_MAX) {
+        throw new Error(`Malformed ULID: timestamp too large: ${time}`);
+    }
+
+    return time;
 }
+
+/**
+ * @param {ULIDFactoryArgs}  args - An Object representing valid arguments for the ULID factory.
+ * @returns {ULIDFactory} A function that generates ULIDs.
+ */
+export const ulidFactory = (args?: ULIDFactoryArgs): ULIDFactory => {
+    const monotonic = args?.monotonic ?? true;
+
+    if (monotonic) {
+        return (function () {
+            let lastTime: number = 0;
+            let lastRandom: string;
+            return function (timestamp?: number): ULID {
+                let timestampOrNow: number = timestamp || Date.now();
+                validateTimestamp(timestampOrNow);
+
+                if (timestampOrNow <= lastTime) {
+                    const incrementedRandom = (lastRandom = incrementBase32(lastRandom));
+                    return encodeTime(lastTime, TIME_LEN) + incrementedRandom;
+                }
+
+                lastTime = timestampOrNow;
+                const newRandom = (lastRandom = encodeRandom(RANDOM_LEN));
+                return encodeTime(timestampOrNow, TIME_LEN) + newRandom;
+            };
+        })();
+    } else {
+        return (function () {
+            return function (timestamp?: number): ULID {
+                let timestampOrNow: number = timestamp || Date.now();
+                validateTimestamp(timestampOrNow);
+                return encodeTime(timestampOrNow, TIME_LEN) + encodeRandom(RANDOM_LEN);
+            };
+        })();
+    }
+};
+
+// Don't publicly export private functions, but allow them to be tested.
+export const exportedForTesting = {
+    encodeRandom,
+    encodeTime,
+    incrementBase32,
+    randomChar,
+    replaceCharAt,
+    validateTimestamp,
+    webCryptoPRNG,
+};
