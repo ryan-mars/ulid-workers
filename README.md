@@ -27,11 +27,16 @@ The `ULID` spec defines a method for handling this situation. You can generate a
 So for example, if you generated five new ULID's within the same `ms` of a time-frozen request you would see something like:
 
 ```text
-00004WT65H0000000000000000
-00004WT65H0000000000000001
-00004WT65H0000000000000002
-00004WT65H0000000000000003
-00004WT65H0000000000000004
+# Note : the random component displayed here is zero'd for
+# clarity and the time component is shown as 'T'. Real ULID's
+# would be increment the LSB of a truly random value using
+# the full Base32 alphabet.
+
+TTTTTTTTTT0000000000000000
+TTTTTTTTTT0000000000000001
+TTTTTTTTTT0000000000000002
+TTTTTTTTTT0000000000000003
+TTTTTTTTTT0000000000000004
 ```
 
 You can see that the time component remains at `00004WT65H` while the random component that follows has its least significant bit incremented by `1`.
