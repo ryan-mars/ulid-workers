@@ -15,7 +15,8 @@
         "prepare": "husky install"
     },
     "files": [
-        "dist/**/*"
+        "dist/**/*",
+        "CHANGELOG.md"
     ],
     "lint-staged": {
         "{source,test}/**/*.{js,ts}": [
