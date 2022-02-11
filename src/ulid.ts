@@ -108,7 +108,7 @@ function replaceCharAt(str: string, index: number, char: string): string {
     if (index > str.length - 1) {
         return str;
     }
-    return str.substr(0, index) + char + str.substr(index + 1);
+    return str.substring(0, index) + char + str.substring(index + 1);
 }
 
 /**
@@ -122,7 +122,7 @@ export function decodeTime(id: string): number {
     }
 
     const time = id
-        .substr(0, TIME_LEN)
+        .substring(0, TIME_LEN)
         .split("")
         .reverse()
         .reduce((carry, char, index) => {
