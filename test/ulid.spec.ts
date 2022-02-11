@@ -203,7 +203,7 @@ describe("ulid", function () {
             expect(this.ulid()).to.have.a.lengthOf(26);
         });
 
-        describe("with seedTime", function () {
+        describe("with timestamp", function () {
             it("should return expected encoded time component result", function () {
                 expect(this.ulid(1469918176385).substring(0, 10)).to.equal("01ARYZ6S41");
             });
@@ -224,7 +224,7 @@ describe("ulid", function () {
             });
         });
 
-        describe("without seedTime", function () {
+        describe("without timestamp", function () {
             before(function () {
                 this.clock = sinon.useFakeTimers({
                     now: 1469918176385,
@@ -266,7 +266,7 @@ describe("ulid", function () {
             expect(ulid()).to.have.a.lengthOf(26);
         });
 
-        describe("with seedTime should never step backwards in lexical sort", function () {
+        describe("with timestamp should never step backwards in lexical sort", function () {
             before(function () {
                 this.ulid = ulidFactory({ monotonic: true });
             });
@@ -296,7 +296,7 @@ describe("ulid", function () {
             });
         });
 
-        describe("without seedTime", function () {
+        describe("without timestamp", function () {
             before(function () {
                 this.clock = sinon.useFakeTimers({
                     now: 1469918176385,
