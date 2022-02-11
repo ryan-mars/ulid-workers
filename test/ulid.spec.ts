@@ -242,7 +242,7 @@ describe("ulid", function () {
             expect(ulid()).to.have.a.lengthOf(26);
         });
 
-        describe("with seedTime", function () {
+        describe("with seedTime should never step backwards in lexical sort", function () {
             before(function () {
                 this.ulid = ulidFactory({ monotonic: true });
             });
@@ -251,16 +251,16 @@ describe("ulid", function () {
                 expect(this.ulid(164436145)).to.equal("00004WT65H0000000000000000");
             });
 
-            it("second call", function () {
-                expect(this.ulid(164436145)).to.equal("00004WT65H0000000000000001");
+            it("second call with older timestamp returns current timestamp and incremented random", function () {
+                expect(this.ulid(164436145 - 1000)).to.equal("00004WT65H0000000000000001"); // the value of the ULIDs time component was not pushed backwards
             });
 
             it("third call", function () {
                 expect(this.ulid(164436145)).to.equal("00004WT65H0000000000000002");
             });
 
-            it("fourth call", function () {
-                expect(this.ulid(164436145)).to.equal("00004WT65H0000000000000003");
+            it("fourth call with even older timestamp returns current timestamp and incremented random", function () {
+                expect(this.ulid(164436145 - 86400)).to.equal("00004WT65H0000000000000003"); // the value of the ULIDs time component was not pushed backwards
             });
 
             describe("should throw an error", function () {
