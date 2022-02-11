@@ -6,8 +6,10 @@ import { expect } from "chai";
 import { decodeTime, ulidFactory } from "../src/index";
 import { exportedForTesting } from "../src/ulid";
 
-const { encodeRandom, encodeTime, randomChar, validateTimestamp, webCryptoPRNG } =
+const { encodeRandom, encodeTime, incrementBase32, randomChar, validateTimestamp, webCryptoPRNG } =
     exportedForTesting;
+
+const RANDOM_LEN = 16;
 
 describe("ulid", function () {
     before(function () {
@@ -83,6 +85,34 @@ describe("ulid", function () {
                 expect(() => {
                     encodeTime(Math.pow(2, 48), 8);
                 }).to.throw(/cannot encode a timestamp larger than/);
+            });
+        });
+    });
+
+    describe("incrementBase32", function () {
+        it("should return expected result", function () {
+            expect(incrementBase32("0".repeat(RANDOM_LEN))).to.equal("0000000000000001");
+        });
+
+        it("should return expected result", function () {
+            expect(incrementBase32("0000000000000009")).to.equal("000000000000000A");
+        });
+
+        it("should return expected result", function () {
+            expect(incrementBase32("000000000000000Z")).to.equal("0000000000000010");
+        });
+
+        describe("should throw an error", function () {
+            it("if Base32 value length > RANDOM_LEN", function () {
+                expect(() => {
+                    incrementBase32("0".repeat(RANDOM_LEN + 1));
+                }).to.throw(/Base32 value to increment cannot be longer than 16/);
+            });
+
+            it("if at max random Base32 value", function () {
+                expect(() => {
+                    incrementBase32("Z".repeat(RANDOM_LEN));
+                }).to.throw(/Cannot increment Base32 maximum value/);
             });
         });
     });

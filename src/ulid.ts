@@ -69,6 +69,15 @@ function incrementBase32(str: string): string {
         charIndex: number,
         output = str;
     const maxCharIndex = ENCODING_LEN - 1;
+
+    if (str.length > RANDOM_LEN) {
+        throw new Error(`Base32 value to increment cannot be longer than ${RANDOM_LEN} characters`);
+    }
+
+    if (str === "Z".repeat(RANDOM_LEN)) {
+        throw new Error(`Cannot increment Base32 maximum value ${"Z".repeat(RANDOM_LEN)}`);
+    }
+
     while (!done && index-- >= 0) {
         char = output[index];
         charIndex = ENCODING.indexOf(char);
