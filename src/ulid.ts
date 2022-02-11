@@ -47,13 +47,13 @@ function validateTimestamp(timestamp: number): void {
     }
 }
 
-function encodeTime(timestamp: number, len: number): string {
+function encodeTime(timestamp: number): string {
     validateTimestamp(timestamp);
 
     let mod: number;
     let str: string = "";
 
-    for (let currentLen: number = len; currentLen > 0; currentLen--) {
+    for (let tLen: number = TIME_LEN; tLen > 0; tLen--) {
         mod = timestamp % ENCODING_LEN;
         str = ENCODING.charAt(mod) + str;
         timestamp = (timestamp - mod) / ENCODING_LEN;
@@ -159,12 +159,12 @@ export const ulidFactory = (args?: ULIDFactoryArgs): ULIDFactory => {
                     lastTime = timestampOrNow;
                     const random = encodeRandom(RANDOM_LEN);
                     lastRandom = random;
-                    return encodeTime(timestampOrNow, TIME_LEN) + random;
+                    return encodeTime(timestampOrNow) + random;
                 } else {
                     // <= lastTime : increment lastRandom
                     const random = incrementBase32(lastRandom);
                     lastRandom = random;
-                    return encodeTime(lastTime, TIME_LEN) + random;
+                    return encodeTime(lastTime) + random;
                 }
             };
         })();
@@ -173,7 +173,7 @@ export const ulidFactory = (args?: ULIDFactoryArgs): ULIDFactory => {
             return function (timestamp?: number): ULID {
                 let timestampOrNow: number = timestamp || Date.now();
                 validateTimestamp(timestampOrNow);
-                return encodeTime(timestampOrNow, TIME_LEN) + encodeRandom(RANDOM_LEN);
+                return encodeTime(timestampOrNow) + encodeRandom(RANDOM_LEN);
             };
         })();
     }
