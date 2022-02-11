@@ -94,11 +94,12 @@ const id = ulid();
 
 ### Timestamp
 
-By default, the `ulid()` function call will use the current timestamp for the time component of newly generated ULIDs. You can also provide a `timestamp` argument which will consistently give you the same string for the time component (the first 10 characters) of the `ULID`.
+The `ULID` specification states that timestamps represent the UNIX Epoch in milliseconds. This library expects all timestamp input to also represent milliseconds since the Epoch. By default, the `ulid()` function call will use the current time for the time component of newly generated ULIDs. You can also provide a `timestamp` argument which will consistently give you the same string for the time component (the first 10 characters) of the `ULID`.
 
 Providing a timestamp value can be useful, for example, for migrating from another timestamp based ID system to `ULID` where you want to retain the same timestamp component.
 
 ```typescript
+// timestamp in ms since the Epoch
 ulid(1469918176385);
 ```
 
