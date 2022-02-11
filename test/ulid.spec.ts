@@ -128,16 +128,10 @@ describe("ulid", function () {
     });
 
     describe("randomChar", function () {
-        it("should never return undefined", function () {
-            for (let x = 0; x < 320000; x++) {
+        it("should never return undefined or an empty string", function () {
+            for (let x = 0; x < 10000; x++) {
                 const randChar = randomChar();
                 expect(randChar).to.not.be.undefined;
-            }
-        });
-
-        it("should never return an empty string", function () {
-            for (let x = 0; x < 320000; x++) {
-                const randChar = randomChar();
                 expect(randChar).to.not.equal("");
             }
         });
