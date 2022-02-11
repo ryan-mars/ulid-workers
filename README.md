@@ -39,13 +39,25 @@ TTTTTTTTTT0000000000000003
 TTTTTTTTTT0000000000000004
 ```
 
-You can see that the time component remains at `00004WT65H` while the random component that follows has its least significant bit incremented by `1`.
+You can see that the time component remains unchanged while the random component that follows has its least significant bit incremented by `1`, which is the next rotation in the next Base32 character set.
 
 It is for these reasons we use the [monotonic ULID factory](#monotonic-ulid-factory) by default. Of course you can also use the `non-monotonic` version just as easily.
 
 For more on the decision to fork, please also see [this discussion](https://github.com/perry-mitchell/ulidx/pull/6#issuecomment-1003190116).
 
-### Are there any issues with using the `monotonic` generator?
+### What is the behavior of the `monotonic` generator when passing a `timestamp` arg?
+
+If you pass a `timestamp` argument to the factory function to override the timestamp portion of the ULID there are a couple of interesting behaviors you might want to be aware of:
+
+1) The function will never return a ULID where the time component is less than the highest timestamp it has been exposed to. The function has some internal state that tracks the last time it was exposed to. If asked for a ULID with `ulid(Date.now())` and then subsequently asked for a ULID with `ulid(Date.now() - 1000)` it will return a ULID with the timestamp of the former higher timestamp.  This ensures that ULID's that are emitted *always* monotonically increment and ULID's generated later will always lexically sort higher than ULID's generated earlier.
+
+2) The behavior of the monotonic function will vary based on where it is initialized and in what context it is run:
+    * If the function is initialized as a constant __outside__ of the Cloudflare Worker handler function its internal state will persist for the lifetime of the particular instance of the Cloudflare Worker isolate it is running in. There can be many such isolates running in Cloudflare data centers around the world. So each will have its own internal state. The function will always return a timestamp that is >= the highest timestamp it has ever been exposed to. This could be long lived state if the ULID generator were to run in the context of a Cloudflare Durable Object where it may have a long lifetime and where its state may be maintained in a single isolate.
+    * If the function is initialized as a constant __inside__ of the Cloudflare Worker handler function's request/response cycle it will be recreated on each request, and no internal state will be maintained across requests. In this case you will always get a ULID that is "fresh", meaning the state related to the last timestamp handled is reset on every request.
+
+In general you probably don't want to pass a timestamp arg to a monotonic generator unless you understand these, or other, nuances. The capability of ensuring a higher level of monotonicity is provided for those who understand these behaviors.
+
+### Are there any concerns with using the `monotonic` generator?
 
 Generally speaking, no.
 
@@ -54,7 +66,7 @@ However, if your use case:
 * generates multiple `ULID`s in the context of a single request
 * AND places high importance on the non-guessability of the next `ULID` in a sequence
 
-Then you might want to use the `non-monotonic` configuration, sacrificing sortability. As you can see from the example above, it is trivial to guess what the next `ULID` in a sequence of `ULID`s all generated within a single `ms` are going to be.
+Then you might want to use the `non-monotonic` configuration, sacrificing higher sortability. As you can see from the example above, it is trivial to guess what the next `ULID` in a sequence of `ULID`s all generated within a single `ms` are going to be.
 
 We think for most use-cases for use within Cloudflare Workers these concerns are of lesser importance so we've chosen to use `monotonic` by default.
 
