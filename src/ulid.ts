@@ -112,9 +112,9 @@ function replaceCharAt(str: string, index: number, char: string): string {
 }
 
 /**
- * Decode the time component of a ULID to a number representing the UNIX epoch timestamp.
+ * Decode the time component of a ULID to a number representing the UNIX epoch timestamp in milliseconds.
  * @param {string}  id - A ULID string.
- * @returns {number} The UNIX epoch timestamp.
+ * @returns {number} The UNIX epoch timestamp in milliseconds.
  */
 export function decodeTime(id: string): number {
     if (id.length !== TIME_LEN + RANDOM_LEN) {
