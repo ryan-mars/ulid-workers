@@ -146,14 +146,17 @@ export const ulidFactory = (args?: ULIDFactoryArgs): ULIDFactory => {
                 let timestampOrNow: number = timestamp || Date.now();
                 validateTimestamp(timestampOrNow);
 
-                if (timestampOrNow <= lastTime) {
-                    const incrementedRandom = (lastRandom = incrementBase32(lastRandom));
-                    return encodeTime(lastTime, TIME_LEN) + incrementedRandom;
+                if (timestampOrNow > lastTime) {
+                    lastTime = timestampOrNow;
+                    const random = encodeRandom(RANDOM_LEN);
+                    lastRandom = random;
+                    return encodeTime(timestampOrNow, TIME_LEN) + random;
+                } else {
+                    // <= lastTime : increment lastRandom
+                    const random = incrementBase32(lastRandom);
+                    lastRandom = random;
+                    return encodeTime(lastTime, TIME_LEN) + random;
                 }
-
-                lastTime = timestampOrNow;
-                const newRandom = (lastRandom = encodeRandom(RANDOM_LEN));
-                return encodeTime(timestampOrNow, TIME_LEN) + newRandom;
             };
         })();
     } else {
