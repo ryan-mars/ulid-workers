@@ -58,6 +58,39 @@ Then you might want to use the `non-monotonic` configuration, sacrificing sortab
 
 We think for most use-cases for use within Cloudflare Workers these concerns are of lesser importance so we've chosen to use `monotonic` by default.
 
+## Demonstration API
+
+If you'd like to generate `ULID`s there is a public API at [ulid.truestamp.com](https://ulid.truestamp.com/) that is implemented using a Cloudflare Worker and a global singleton Durable Object that creates all ULIDs using this library.
+
+Learn more:
+
+<https://github.com/truestamp/ulid-generator>
+
+Example:
+
+[https://ulid.truestamp.com/?q=3](https://ulid.truestamp.com/?q=3)
+
+```sh
+❯ https --print b https://ulid.truestamp.com q==3
+[
+    {
+        "t": 1644553645224,
+        "ts": "2022-02-11T04:27:25.224Z",
+        "ulid": "01FVKGJB58M3ERB35J6KFKPPK8"
+    },
+    {
+        "t": 1644553645224,
+        "ts": "2022-02-11T04:27:25.224Z",
+        "ulid": "01FVKGJB58M3ERB35J6KFKPPK9"
+    },
+    {
+        "t": 1644553645224,
+        "ts": "2022-02-11T04:27:25.224Z",
+        "ulid": "01FVKGJB58M3ERB35J6KFKPPKA"
+    }
+]
+```
+
 ## Installation
 
 Install using npm by running:
