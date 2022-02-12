@@ -285,6 +285,7 @@ describe("ulid", function () {
             });
 
             it("second call with older timestamp returns current timestamp and incremented random", function () {
+                // the value of the ULIDs time component was not pushed backwards
                 expect(this.ulid(TEST_TIME_EPOCH_MS - 1000)).to.equal(
                     TEST_TIME_ENCODED + "0000000000000001"
                 );
@@ -297,6 +298,7 @@ describe("ulid", function () {
             });
 
             it("fourth call with even older timestamp returns current timestamp and incremented random", function () {
+                // the value of the ULIDs time component was not pushed backwards
                 expect(this.ulid(TEST_TIME_EPOCH_MS - 86400)).to.equal(
                     TEST_TIME_ENCODED + "0000000000000003"
                 );
