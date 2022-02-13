@@ -3,27 +3,26 @@ name: Tests
 on: push
 
 jobs:
-  nodejs:
+  specs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x, 16.x]
+        node-version: [16.x, 17.x]
     steps:
       - uses: actions/checkout@v2
-      - name: Node.js specs ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - name: Specs ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
-      - run: npm run build
       - run: npm run test:specs
   formatting:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Formatting
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
-          node-version: 14.x
+          node-version: 16.x
       - run: npm ci
       - run: npm run test:format
