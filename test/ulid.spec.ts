@@ -9,7 +9,11 @@ import { exportedForTesting } from "../src/ulid";
 const { encodeRandom, encodeTime, incrementBase32, randomChar, validateTimestamp, webCryptoPRNG } =
     exportedForTesting;
 
+const TIME_LEN = 10;
 const RANDOM_LEN = 16;
+const TEST_ULID = "01ARYZ6S41TSV4RRFFQ69G5FAV";
+const TEST_TIME_EPOCH_MS = 1469918176385;
+const TEST_TIME_ENCODED = TEST_ULID.substring(0, TIME_LEN);
 
 describe("ulid", function () {
     before(function () {
@@ -38,8 +42,7 @@ describe("ulid", function () {
 
         // https://github.com/ulid/spec
         it("should return correct timestamp for README example", function () {
-            const id = "01ARYZ6S41TSV4RRFFQ69G5FAV";
-            expect(decodeTime(id)).to.equal(1469918176385);
+            expect(decodeTime(TEST_ULID)).to.equal(TEST_TIME_EPOCH_MS);
         });
 
         it("should accept the maximum allowed timestamp", function () {
@@ -200,18 +203,22 @@ describe("ulid", function () {
         });
 
         it("should return correct length", function () {
-            expect(this.ulid()).to.have.a.lengthOf(26);
+            expect(this.ulid()).to.have.a.lengthOf(TIME_LEN + RANDOM_LEN);
         });
 
         describe("with seedTime", function () {
             it("should return expected encoded time component result", function () {
-                expect(this.ulid(1469918176385).substring(0, 10)).to.equal("01ARYZ6S41");
+                expect(this.ulid(TEST_TIME_EPOCH_MS).substring(0, TIME_LEN)).to.equal(
+                    TEST_TIME_ENCODED
+                );
             });
 
             it("should always return the same value when time and randomness are frozen", function () {
                 // both time seed and the random component are frozen for this test
                 for (let x = 0; x < 10; x++) {
-                    expect(this.ulid(164436145)).to.equal("00004WT65H0000000000000000");
+                    expect(this.ulid(TEST_TIME_EPOCH_MS)).to.equal(
+                        TEST_TIME_ENCODED + "0000000000000000"
+                    );
                 }
             });
 
@@ -227,7 +234,7 @@ describe("ulid", function () {
         describe("without seedTime", function () {
             before(function () {
                 this.clock = sinon.useFakeTimers({
-                    now: 1469918176385,
+                    now: TEST_TIME_EPOCH_MS,
                     toFake: ["Date"],
                 });
             });
@@ -239,7 +246,7 @@ describe("ulid", function () {
             it("should always return the same value", function () {
                 // both time and the random component are frozen for this test
                 for (let x = 0; x < 10; x++) {
-                    expect(this.ulid()).to.equal("01ARYZ6S410000000000000000");
+                    expect(this.ulid()).to.equal(TEST_TIME_ENCODED + "0000000000000000");
                 }
             });
         });
@@ -263,7 +270,7 @@ describe("ulid", function () {
 
         it("should return correct length", function () {
             const ulid = ulidFactory({ monotonic: true });
-            expect(ulid()).to.have.a.lengthOf(26);
+            expect(ulid()).to.have.a.lengthOf(TIME_LEN + RANDOM_LEN);
         });
 
         describe("with seedTime should never step backwards in lexical sort", function () {
@@ -272,19 +279,29 @@ describe("ulid", function () {
             });
 
             it("first call", function () {
-                expect(this.ulid(164436145)).to.equal("00004WT65H0000000000000000");
+                expect(this.ulid(TEST_TIME_EPOCH_MS)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000000"
+                );
             });
 
             it("second call with older timestamp returns current timestamp and incremented random", function () {
-                expect(this.ulid(164436145 - 1000)).to.equal("00004WT65H0000000000000001"); // the value of the ULIDs time component was not pushed backwards
+                // the value of the ULIDs time component was not pushed backwards
+                expect(this.ulid(TEST_TIME_EPOCH_MS - 1000)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000001"
+                );
             });
 
             it("third call", function () {
-                expect(this.ulid(164436145)).to.equal("00004WT65H0000000000000002");
+                expect(this.ulid(TEST_TIME_EPOCH_MS)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000002"
+                );
             });
 
             it("fourth call with even older timestamp returns current timestamp and incremented random", function () {
-                expect(this.ulid(164436145 - 86400)).to.equal("00004WT65H0000000000000003"); // the value of the ULIDs time component was not pushed backwards
+                // the value of the ULIDs time component was not pushed backwards
+                expect(this.ulid(TEST_TIME_EPOCH_MS - 86400)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000003"
+                );
             });
 
             describe("should throw an error", function () {
@@ -299,7 +316,7 @@ describe("ulid", function () {
         describe("without seedTime", function () {
             before(function () {
                 this.clock = sinon.useFakeTimers({
-                    now: 1469918176385,
+                    now: TEST_TIME_EPOCH_MS,
                     toFake: ["Date"],
                 });
             });
@@ -313,19 +330,27 @@ describe("ulid", function () {
             });
 
             it("first call", function () {
-                expect(this.ulid()).to.equal("01ARYZ6S410000000000000000");
+                expect(this.ulid(TEST_TIME_EPOCH_MS)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000000"
+                );
             });
 
             it("second call", function () {
-                expect(this.ulid()).to.equal("01ARYZ6S410000000000000001");
+                expect(this.ulid(TEST_TIME_EPOCH_MS)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000001"
+                );
             });
 
             it("third call", function () {
-                expect(this.ulid()).to.equal("01ARYZ6S410000000000000002");
+                expect(this.ulid(TEST_TIME_EPOCH_MS)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000002"
+                );
             });
 
             it("fourth call", function () {
-                expect(this.ulid()).to.equal("01ARYZ6S410000000000000003");
+                expect(this.ulid(TEST_TIME_EPOCH_MS)).to.equal(
+                    TEST_TIME_ENCODED + "0000000000000003"
+                );
             });
         });
     });
