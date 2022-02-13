@@ -72,21 +72,13 @@ describe("ulid", function () {
 
     describe("encodeTime", function () {
         it("should return expected encoded result", function () {
-            expect(encodeTime(1469918176385, 10)).to.equal("01ARYZ6S41");
-        });
-
-        it("should change length properly", function () {
-            expect(encodeTime(1470264322240, 12)).to.equal("0001AS99AA60");
-        });
-
-        it("should truncate time if not enough length", function () {
-            expect(encodeTime(1470118279201, 8)).to.equal("AS4Y1E11");
+            expect(encodeTime(TEST_TIME_EPOCH_MS)).to.equal(TEST_TIME_ENCODED);
         });
 
         describe("should throw an error", function () {
             it("if validateTimestamp is being called", function () {
                 expect(() => {
-                    encodeTime(Math.pow(2, 48), 8);
+                    encodeTime(Math.pow(2, 48));
                 }).to.throw(/cannot encode a timestamp larger than/);
             });
         });
@@ -225,7 +217,7 @@ describe("ulid", function () {
             describe("should throw an error", function () {
                 it("if validateTimestamp is being called", function () {
                     expect(() => {
-                        encodeTime(Math.pow(2, 48), 8);
+                        encodeTime(Math.pow(2, 48));
                     }).to.throw(/cannot encode a timestamp larger than/);
                 });
             });
@@ -307,7 +299,7 @@ describe("ulid", function () {
             describe("should throw an error", function () {
                 it("if validateTimestamp is being called", function () {
                     expect(() => {
-                        encodeTime(Math.pow(2, 48), 8);
+                        encodeTime(Math.pow(2, 48));
                     }).to.throw(/cannot encode a timestamp larger than/);
                 });
             });
