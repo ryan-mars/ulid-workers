@@ -3,10 +3,10 @@ const nodeCrypto = require("crypto");
 const sinon = require("sinon");
 
 import { expect } from "chai";
-import { decodeTime, ulidFactory } from "../src/index";
+import { decodeTime, encodeTime, ulidFactory } from "../src/index";
 import { exportedForTesting } from "../src/ulid";
 
-const { encodeRandom, encodeTime, incrementBase32, randomChar, validateTimestamp, webCryptoPRNG } =
+const { encodeRandom, incrementBase32, randomChar, validateTimestamp, webCryptoPRNG } =
     exportedForTesting;
 
 const TIME_LEN = 10;
