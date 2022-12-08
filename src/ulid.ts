@@ -47,7 +47,7 @@ function validateTimestamp(timestamp: number): void {
     }
 }
 
-function encodeTime(timestamp: number): string {
+export function encodeTime(timestamp: number): string {
     validateTimestamp(timestamp);
 
     let mod: number;
@@ -182,7 +182,6 @@ export const ulidFactory = (args?: ULIDFactoryArgs): ULIDFactory => {
 // Don't publicly export private functions, but allow them to be tested.
 export const exportedForTesting = {
     encodeRandom,
-    encodeTime,
     incrementBase32,
     randomChar,
     replaceCharAt,
