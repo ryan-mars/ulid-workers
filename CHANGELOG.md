@@ -1,5 +1,11 @@
 # ulid-workers changelog
 
+## v2.1.0
+
+2022-12-08
+
+-   Export `encodeTime` to allow encoding of a MAX token when querying a list
+
 ## v2.0.0
 
 2022-02-09
